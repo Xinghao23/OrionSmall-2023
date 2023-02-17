@@ -78,17 +78,17 @@ void drive_example() {
 
 
 //
-Tintake = 80;
+intake = 80;
 chassis.set_drive_pid(-2,80);
 pros::c::delay(75);
-Tintake = 0;
+intake = 0;
 pros::c::delay(100);
 chassis.set_drive_pid(3,DRIVE_SPEED,true);
 chassis.wait_drive();
 //
 chassis.set_turn_pid(90, TURN_SPEED);
 chassis.wait_drive();
-Bintake = 127;
+intake = 127;
 chassis.set_drive_pid(40, DRIVE_SPEED, true);
 chassis.wait_drive();
 
@@ -96,11 +96,10 @@ chassis.set_turn_pid(0,TURN_SPEED);
 chassis.wait_drive();
 chassis.set_drive_pid(50,DRIVE_SPEED,true);
 chassis.wait_drive();
-Bintake = 0;
+intake = 0;
 chassis.set_turn_pid(-42,TURN_SPEED);
 pros::c::delay(4000);
-Bintake = -127;
-Tintake = -127;
+intake = -127;
 
 chassis.set_drive_pid(-5,DRIVE_SPEED,true);
 chassis.wait_drive();

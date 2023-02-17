@@ -15,11 +15,11 @@ void rollerChange(char colour){
         rollerColour = rollerSense.get_rgb(); 
         while(rollerColour.red < 10000 && timeStart < pros::c::millis()+2000)
         {
-            Tintake = 60;
+            intake = 60;
             rollerColour = rollerSense.get_rgb();
         }
     }
-    Tintake = 0;
+    intake = 0;
     rollerSense.set_led_pwm(0);
 }
 
@@ -29,6 +29,6 @@ void rollerChange(char colour){
 //Helper
 
 void setCata(int motorPower){
-    Rcata.move(motorPower);
-    Lcata.move(motorPower);
+    rightCata.move(motorPower);
+    leftCata.move(motorPower);
 }

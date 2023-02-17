@@ -86,10 +86,9 @@ void opcontrol(void);
 #endif
 
 //Motors
-extern pros::Motor Rcata;
-extern pros::Motor Lcata;
-extern pros::Motor Bintake;
-extern pros::Motor Tintake;
+extern pros::Motor rightCata;
+extern pros::Motor leftCata;
+extern pros::Motor intake;
 
 //Sensors
 extern pros::Optical rollerSense;

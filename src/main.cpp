@@ -13,36 +13,37 @@
 /////
 
 // motors
-pros::Motor Tintake(2);
-pros::Motor Bintake(15);
-pros::Motor Lcata(9,1);
-pros::Motor Rcata(10);
+pros::Motor intake(15);
+pros::Motor leftCata(20);
+pros::Motor rightCata(14, 1);
 //pistons
-pros::ADIDigitalOut LPistons(1);
+pros::ADIDigitalOut LPistons(3);
 pros::ADIDigitalOut RPistons(2);
+pros::ADIDigitalOut Boost(1);
+
 //sensors
-pros::Rotation cataRotation(7);
-pros::Optical rollerSense(4);
+pros::Rotation cataRotation(21,1);
+
 
 //controller
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 
 
-PID cataPID{0.45, 0, 0, 0, "Cata"};
+PID cataPID{0.7, 0, 1, 0, "Cata"};
 
 // Chassis constructor
 Drive chassis (
   // Left Chassis Ports (negative port will reverse it!)
   //   the first port is the sensored port (when trackers are not used!)
-  {-11,-12,-13,-14}
+  {-1,-2,-3,-4}
 
   // Right Chassis Ports (negative port will reverse it!)
   //   the first port is the sensored port (when trackers are not used!)
-  ,{17,18,19,20}
+  ,{16,17,18,19}
 
   // IMU Port
-  ,21
+  ,13
 
   // Wheel Diameter (Remember, 4" wheels are actually 4.125!)
   //    (or tracking wheel diameter)
@@ -186,45 +187,37 @@ void autonomous() {
  */
 
 int timePressed = 0;
-pros::c::optical_rgb_s_t rollerRGB;
+
 bool toggle;
 
 void opcontrol() {
   // This is preference to what you like to drive on.
   chassis.set_drive_brake(MOTOR_BRAKE_COAST);
-  Lcata.set_brake_mode(MOTOR_BRAKE_BRAKE);
-  Rcata.set_brake_mode(MOTOR_BRAKE_BRAKE);
+  leftCata.set_brake_mode(MOTOR_BRAKE_BRAKE);
+  rightCata.set_brake_mode(MOTOR_BRAKE_BRAKE);
  
   while (true) {
 
 
 
-    rollerSense.set_led_pwm(100);
+
     //chassis.tank(); // Tank control
-    chassis.arcade_standard(ez::SPLIT); // Standard split arcade
+    //chassis.arcade_standard(ez::SPLIT); // Standard split arcade
     // chassis.arcade_standard(ez::SINGLE); // Standard single arcade
     // chassis.arcade_flipped(ez::SPLIT); // Flipped split arcade
-    // chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
-
+    chassis.arcade_flipped(ez::SINGLE); // Flipped single arcade
+    pros::lcd::print(1,"Tick Position: %ld \n", cataRotation.get_position());
     //Intake
-    if(master.get_digital(DIGITAL_R1)){
-      Bintake = -127;
-      Tintake = -127;
-    }//outtake
-    else if(master.get_digital(DIGITAL_L1)){
-      Bintake = 127;
-      Tintake = 127;
-    }//roller
-    else if(master.get_digital(DIGITAL_L2)){
-      Tintake = 60;
-    }
-
-    if(!(master.get_digital(DIGITAL_R1)||master.get_digital(DIGITAL_L1)||master.get_digital(DIGITAL_L2))){
-      Bintake = 0;
-      Tintake = 0;
-    }
-    
-
+    if(master.get_digital(DIGITAL_L1) == 1){
+			intake = 127; 
+		}
+		else if(master.get_digital(DIGITAL_L2) == 1){
+			intake = -127;
+		}
+		else{
+			intake = 0;
+		}
+		
     //Cata
     
     if(master.get_digital(DIGITAL_R2)){
@@ -232,7 +225,7 @@ void opcontrol() {
       timePressed = pros::c::millis();
     }
     else if(pros::c::millis() > timePressed + 500){
-     cataPID.set_target(8400);
+     cataPID.set_target(8000);
     setCata(cataPID.compute(cataRotation.get_angle()));
     }
     else {
@@ -243,9 +236,8 @@ void opcontrol() {
 
 
 
-    rollerRGB = rollerSense.get_rgb();
-    pros::lcd::print(3,"Red: %lf\n",rollerRGB.red);
-    pros::lcd::print(5,"Blue: %lf\n",rollerRGB.blue);
+ 
+
     pros::lcd::print(6,"Cata angle: %d\n",cataRotation.get_angle());
     pros::delay(ez::util::DELAY_TIME); // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }
