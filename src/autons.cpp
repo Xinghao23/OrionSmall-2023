@@ -280,3 +280,19 @@ void interfered_example() {
 // . . .
 // Make your own autonomous functions here!
 // . . .
+void loadCata(){
+  while(cataRotation.get_position() <= 7600){
+    setCata((7700-cataRotation.get_position())*.25);
+  }
+  setCata(0);
+}
+void fireCata(){
+  setCata(127);
+  pros::delay(500);
+  setCata(0);
+}
+void rollers(double time, double power){
+  intake = power; 
+  pros::delay(time);
+  intake = 0; 
+}

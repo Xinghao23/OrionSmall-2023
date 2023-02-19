@@ -1,4 +1,5 @@
 #include "main.h"
+#include "autons.hpp"
 #include "disks.hpp"
 #include "pros/adi.hpp"
 #include "pros/llemu.hpp"
@@ -14,8 +15,8 @@
 
 // motors
 pros::Motor intake(15);
-pros::Motor leftCata(20);
-pros::Motor rightCata(14, 1);
+pros::Motor rightCata(20);
+pros::Motor leftCata(14, 1);
 //pistons
 pros::ADIDigitalOut LPistons(3);
 pros::ADIDigitalOut RPistons(2);
@@ -79,7 +80,7 @@ Drive chassis (
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
- *
+ * xinghao is a big loser :((((()))))
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
@@ -92,7 +93,9 @@ void initialize() {
 
   cataPID.set_constants(0.1, 0, 0.4);
   cataRotation.reset_position();
-  
+  LPistons.set_value(0);
+  RPistons.set_value(0);
+  Boost.set_value(0);
 
   // Configure your chassis controls
   chassis.toggle_modify_curve_with_controller(true); // Enables modifying the controller curve with buttons on the joysticks
@@ -166,8 +169,72 @@ void autonomous() {
   chassis.reset_gyro(); // Reset gyro position to 0
   chassis.reset_drive_sensor(); // Reset drive sensors to 0
   chassis.set_drive_brake(MOTOR_BRAKE_HOLD); // Set motors to hold.  This helps autonomous consistency.
-  drive_example();
+  //drive_example();
  // ez::as::auton_selector.call_selected_auton(); // Calls selected auton from autonomous selector.
+ 
+ //load cata 
+ loadCata();
+ pros::delay(1000);
+ setCata(0);
+
+ //rollers 
+
+ chassis.set_drive_pid(18, 60);
+ chassis.wait_drive();
+ pros::delay(1000);
+ chassis.set_turn_pid(90, 50);
+ chassis.wait_drive();
+ pros::delay(1000);
+ chassis.set_drive_pid(7.5, 60);
+ chassis.wait_drive();
+ rollers(60, -100);
+ pros::delay(1000);
+
+ //going to shooting position 1
+
+ chassis.set_drive_pid(-14.5, -40);
+ chassis.wait_drive();
+ pros::delay(1000);
+ chassis.set_turn_pid(100, 40);
+ chassis.wait_drive();
+ fireCata();
+ pros::delay(1000);
+
+//going to shooting position two 
+ chassis.set_drive_pid(4, 50);
+ chassis.wait_drive();
+ pros::delay(1000);
+ chassis.set_turn_pid(220, 40);
+ chassis.wait_drive();
+ pros::delay(1000);
+ loadCata();
+ intake = 127; 
+ chassis.set_drive_pid(39, 50);
+ chassis.wait_drive();
+ intake = 0; 
+ pros::delay(1000);
+ chassis.set_turn_pid(120, 40);
+ chassis.wait_drive();
+ pros::delay(1000);
+ chassis.set_drive_pid(8, 40);
+ chassis.wait_drive();
+ fireCata();
+
+
+//shooting position three 
+ chassis.set_drive_pid(-15.5, -40);
+ chassis.wait_drive();
+ pros::delay(1000);
+ chassis.set_turn_pid(180, 40);
+ chassis.wait_drive();
+ loadCata();
+ pros::delay(1000);
+ intake = 127;
+ chassis.set_drive_pid(60, 70);
+ chassis.wait_drive();
+ pros::delay(1000); 
+ intake = 0; 
+ Boost.set_value(1);
 }
 
 
@@ -195,10 +262,13 @@ void opcontrol() {
   chassis.set_drive_brake(MOTOR_BRAKE_COAST);
   leftCata.set_brake_mode(MOTOR_BRAKE_BRAKE);
   rightCata.set_brake_mode(MOTOR_BRAKE_BRAKE);
+  bool LPistonState;
+  bool RPistonState;
+  bool boostState;
  
   while (true) {
 
-
+    
 
 
     //chassis.tank(); // Tank control
@@ -225,8 +295,11 @@ void opcontrol() {
       timePressed = pros::c::millis();
     }
     else if(pros::c::millis() > timePressed + 500){
-     cataPID.set_target(8000);
-    setCata(cataPID.compute(cataRotation.get_angle()));
+      setCata((7800-cataRotation.get_position())*.2);
+      pros::delay(50);
+      if(cataRotation.get_position() <= 7600){
+         setCata(0);
+      }
     }
     else {
       setCata(0);
@@ -234,8 +307,19 @@ void opcontrol() {
   
  
 
-
-
+    //pistons 
+    if(master.get_digital_new_press(DIGITAL_UP)){
+      LPistonState = !LPistonState;
+      LPistons.set_value(LPistonState);
+    }
+    if(master.get_digital_new_press(DIGITAL_RIGHT)){
+      RPistonState = !RPistonState;
+      RPistons.set_value(RPistonState);
+    }    
+    if(master.get_digital_new_press(DIGITAL_DOWN)){
+      boostState = !boostState;
+      Boost.set_value(boostState);
+    }
  
 
     pros::lcd::print(6,"Cata angle: %d\n",cataRotation.get_angle());
